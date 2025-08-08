@@ -34,3 +34,15 @@ http://localhost:8000
 ```
 
 Deberías recibir una respuesta del servicio.
+
+## Interfaz web con Gradio
+
+Para interactuar con una versión simplificada de LEXA mediante una interfaz
+gráfica, ejecuta:
+
+```bash
+PYTHONPATH=. python ui/gradio_app.py
+```
+
+Esto iniciará un servidor local de Gradio accesible en
+`http://127.0.0.1:7860` donde podrás clasificar casos y validar requisitos.
