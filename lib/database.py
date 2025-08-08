@@ -4,7 +4,9 @@ from typing import List, Optional, Tuple
 from langchain.schema import Document
 
 # Default path for the SQLite database
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "app.db")
+# Adjusted to account for this module residing inside ``lib``
+# so the database is located at the project-level ``data/app.db``.
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "app.db")
 
 
 def connect() -> sqlite3.Connection:

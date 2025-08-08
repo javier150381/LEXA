@@ -20,7 +20,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 from lib import tokens, demandas, costos, activation
 from lib.feedback import save_feedback
-import database as db
+from lib import database as db
 from src.classifier.suggest_type import suggest_type
 from ui.constants import (
     WINDOW_BG,

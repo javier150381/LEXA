@@ -41,7 +41,7 @@ from langchain_openai import ChatOpenAI
 
 from . import tokens
 from .exact_index import build_exact_index, search_article
-import database as db
+from lib import database as db
 from src.schema_utils import (
     generate_schema_from_pdf,
     hash_for_pdf,
