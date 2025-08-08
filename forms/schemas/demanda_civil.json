@@ -1,0 +1,14 @@
+{
+  "title": "Demanda Civil",
+  "fields": [
+    {"name": "actor", "label": "Actor", "required": true, "type": "string"},
+    {"name": "demandado", "label": "Demandado", "required": true, "type": "string"},
+    {
+      "name": "email",
+      "label": "Correo",
+      "required": false,
+      "type": "string",
+      "validations": {"pattern": "^\\S+@\\S+\\.\\S+$"}
+    }
+  ]
+}

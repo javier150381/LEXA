@@ -1,0 +1,80 @@
+{
+  "title": "Demanda De Diligencia Preparatoria ",
+  "fields": [
+    {
+      "name": "NOMBRE_Y_APELLIDO_DEL_DEMANDANTE",
+      "label": "Nombre Y Apellido Del Demandante",
+      "required": false
+    },
+    {
+      "name": "NACIONALIDAD_DEMANDANTE",
+      "label": "Nacionalidad Demandante",
+      "required": false
+    },
+    {
+      "name": "MAYOR_MENOR_DEMANDANTE",
+      "label": "Mayor/Menor Demandante",
+      "required": false
+    },
+    {
+      "name": "CEDULA_DEL_DEMANDANTE",
+      "label": "Cedula Del Demandante",
+      "required": false
+    },
+    {
+      "name": "ESTADO_CIVIL_DEMANDANTE",
+      "label": "Estado Civil Demandante",
+      "required": false
+    },
+    {
+      "name": "DIRECCION_DEMANDANTE",
+      "label": "Dirección Demandante",
+      "required": false
+    },
+    {
+      "name": "NOMRES_Y_APELLIDOS_DE_LA_DENUNCIADO",
+      "label": "Nomres Y Apellidos De La Denunciado",
+      "required": false
+    },
+    {
+      "name": "NACIONALIDAD_DENUNCIADO",
+      "label": "Nacionalidad Denunciado",
+      "required": false
+    },
+    {
+      "name": "CEDULA_DENUNCIADO",
+      "label": "Cedula Denunciado",
+      "required": false
+    },
+    {
+      "name": "MAYOR_MENOR_DEMANDADO",
+      "label": "Mayor/Menor Demandado",
+      "required": false
+    },
+    {
+      "name": "REDACCION_DE_ANTECEDENTES",
+      "label": "Redaccion De Antecedentes……",
+      "required": false
+    },
+    {
+      "name": "CASILLA_JUDICIAL_ELECTRONICA",
+      "label": "Casilla Judicial Electrónica",
+      "required": false
+    },
+    {
+      "name": "CASILLERO_JUDICIAL",
+      "label": "Casillero Judicial",
+      "required": false
+    },
+    {
+      "name": "NOMBRES_Y_APELLIDOS_DEL_ABOGADO",
+      "label": "Nombres Y Apellidos Del Abogado",
+      "required": false
+    },
+    {
+      "name": "CORREO_ELECTRONICO_ABOGADO",
+      "label": "Correo Electronico Abogado",
+      "required": false
+    }
+  ]
+}

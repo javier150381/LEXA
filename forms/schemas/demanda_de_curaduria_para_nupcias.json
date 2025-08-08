@@ -1,0 +1,15 @@
+{
+  "title": "Demanda De Curaduria Para Nupcias",
+  "fields": [
+    {
+      "name": "NOMBRE",
+      "label": "Nombre",
+      "required": false
+    },
+    {
+      "name": "DETALLE",
+      "label": "Detalle",
+      "type": "text"
+    }
+  ]
+}
