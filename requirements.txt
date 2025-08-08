@@ -14,3 +14,5 @@ pytesseract
 faiss-cpu
 PyYAML
 gradio
+keyring
+

@@ -1,13 +1,33 @@
+"""Interfaz web simple para interactuar con LEXA mediante Gradio.
+
+El módulo `lib.demandas` requiere varias dependencias externas (incluyendo
+`keyring`).  Para que esta interfaz pueda ejecutarse incluso en entornos donde
+dichas dependencias no están instaladas, el import se realiza de forma
+opcional.  Si la importación falla, la funcionalidad de generación de demandas
+se deshabilita pero las demás herramientas continúan funcionando.
+"""
+
 import json
 import gradio as gr
 
-from lib import demandas as dem
+try:  # pragma: no cover - la importación depende de paquetes externos
+    from lib import demandas as dem
+except Exception:  # noqa: BLE001 - feedback amigable al usuario
+    dem = None
+
 from src.classifier.suggest_type import suggest_type
 from src.validators.requirements import validate_requirements
 
 
 def generar_demanda(tipo: str, caso: str) -> str:
-    """Genera una demanda del tipo indicado para el caso dado."""
+    """Genera una demanda del tipo indicado para el caso dado.
+
+    Cuando las dependencias del módulo ``lib.demandas`` no están disponibles,
+    se informa al usuario en lugar de producir un error.
+    """
+
+    if dem is None:
+        return "Función no disponible: faltan dependencias de 'lib.demandas'"
     return dem.generar_demanda_de_tipo(tipo, caso or "")
 
 
