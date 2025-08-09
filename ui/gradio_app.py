@@ -20,6 +20,8 @@ try:  # pragma: no cover - la importación depende de paquetes externos
         build_or_load_vectorstore,
         DemandasContext,
         agregar_jurisprudencia_pdf,
+        buscar_palabras_clave_fn,
+        buscar_palabras_clave_exacta_fn,
     )
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.chat_message_histories import ChatMessageHistory
@@ -29,6 +31,7 @@ except Exception:  # noqa: BLE001 - feedback amigable al usuario
     chat_fn = build_or_load_vectorstore = None
     PyPDFLoader = ChatMessageHistory = None
     DemandasContext = agregar_jurisprudencia_pdf = None
+    buscar_palabras_clave_fn = buscar_palabras_clave_exacta_fn = None
     ctx = None
 
 
@@ -109,6 +112,20 @@ def subir_juris(files):
     return "\n".join(msgs)
 
 
+def buscar_palabras_clave(texto: str, modo: str) -> str:
+    """Busca artículos por palabras clave en modo exacto o semántico."""
+
+    if (
+        dem is None
+        or buscar_palabras_clave_fn is None
+        or buscar_palabras_clave_exacta_fn is None
+    ):
+        return "Función no disponible: faltan dependencias de 'lib.demandas'"
+    if (modo or "").lower().startswith("exact"):
+        return buscar_palabras_clave_exacta_fn(texto or "", ctx=ctx)
+    return buscar_palabras_clave_fn(texto or "", ctx=ctx)
+
+
 
 with gr.Blocks() as demo:
     gr.Markdown("# LEXA - Interfaz web con Gradio")
@@ -137,6 +154,34 @@ with gr.Blocks() as demo:
             responder_chat,
             inputs=[input_text, pdf_temp, history_state],
             outputs=[respuesta_out, history_state],
+        )
+
+    with gr.Tab("Palabras clave"):
+        palabras_in = gr.Textbox(label="Ingresa palabras clave o temas")
+        modo_in = gr.Radio(
+            ["semántico", "exacto"],
+            label="Modo de búsqueda",
+            value="semántico",
+        )
+        buscar_pal_btn = gr.Button("Buscar artículos")
+        palabras_out = gr.Textbox(
+            label="Resultados",
+            lines=10,
+            show_copy_button=True,
+        )
+        btn_clear_pal = gr.Button("Limpiar")
+        btn_copy_pal = gr.Button("Copiar")
+        buscar_pal_btn.click(
+            buscar_palabras_clave,
+            inputs=[palabras_in, modo_in],
+            outputs=palabras_out,
+        )
+        btn_clear_pal.click(lambda: "", outputs=palabras_out)
+        btn_copy_pal.click(
+            None,
+            inputs=palabras_out,
+            outputs=None,
+            js="(text) => navigator.clipboard.writeText(text)",
         )
 
     with gr.Tab("Validar requisitos"):
