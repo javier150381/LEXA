@@ -1357,6 +1357,10 @@ class AbogadoVirtualApp:
             if hasattr(self, "list_casos"):
                 self.list_casos.selection_clear(0, tk.END)
             self.refresh_list_pdfs_caso("")
+            if hasattr(self, "dropdown_casos_tab"):
+                self.dropdown_casos_tab.set("")
+            if hasattr(self, "var_caso_tab"):
+                self.var_caso_tab.set("")
             return
         self.caso_seleccionado.set(nombre)
         if hasattr(self, "list_casos"):
@@ -1365,6 +1369,10 @@ class AbogadoVirtualApp:
                 idx = items.index(nombre)
                 self.list_casos.selection_clear(0, tk.END)
                 self.list_casos.selection_set(idx)
+        if hasattr(self, "dropdown_casos_tab"):
+            self.dropdown_casos_tab.set(nombre)
+        if hasattr(self, "var_caso_tab"):
+            self.var_caso_tab.set(nombre)
         self.refresh_list_pdfs_caso(nombre)
         demandas.analizar_caso(nombre)
         self._suggest_area_for_case(nombre)
@@ -1868,6 +1876,10 @@ class AbogadoVirtualApp:
         nombre = self.dropdown_casos_tab.get()
         if nombre:
             self.caso_seleccionado.set(nombre)
+            if hasattr(self, "dropdown_casos_chat"):
+                self.dropdown_casos_chat.set(nombre)
+            if hasattr(self, "var_dropdown_casos_chat"):
+                self.var_dropdown_casos_chat.set(nombre)
             self.refresh_list_pdfs_caso(nombre)
             if hasattr(self, "lbl_pdf_trabajo"):
                 self.lbl_pdf_trabajo.config(text="Trabajando en: Ninguno")
