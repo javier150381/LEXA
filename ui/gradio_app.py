@@ -11,6 +11,7 @@ import json
 import os
 import tempfile
 import gradio as gr
+from lib import tokens
 
 try:  # pragma: no cover - la importación depende de paquetes externos
     from lib import demandas as dem
@@ -34,6 +35,8 @@ except Exception:  # noqa: BLE001 - feedback amigable al usuario
 
 from src.classifier.suggest_type import suggest_type
 from src.validators.requirements import validate_requirements
+
+tokens.init_db()
 
 
 def generar_demanda(tipo: str, caso: str) -> str:
@@ -109,6 +112,51 @@ def subir_juris(files):
     return "\n".join(msgs)
 
 
+def update_token_log(start: str | None, end: str | None):
+    """Obtiene el historial de tokens filtrado por fecha."""
+    rows = tokens.get_token_log_with_id(start_date=start or None, end_date=end or None, limit=20)
+    data = []
+    for (
+        _row_id,
+        ts,
+        count,
+        tokens_in,
+        tokens_out,
+        actividad,
+        costo_cliente,
+        _costo_ds,
+    ) in rows:
+        data.append(
+            [
+                ts,
+                actividad or "",
+                tokens_in if tokens_in is not None else "",
+                tokens_out if tokens_out is not None else "",
+                count,
+                f"{costo_cliente:.4f}",
+            ]
+        )
+    return data
+
+
+def on_reset_tokens():
+    """Reinicia el contador de tokens."""
+    tokens.reset_tokens()
+    return tokens.get_tokens(), update_token_log(None, None)
+
+
+def on_import_credit_file(file):
+    """Aplica crédito desde un archivo subido."""
+    if file is None:
+        return tokens.get_credit(), "No se seleccionó archivo"
+    try:
+        tokens.add_credit_from_file(file.name)
+        msg = "Crédito aplicado"
+    except Exception as exc:  # pragma: no cover - feedback al usuario
+        msg = f"Error: {exc}"
+    return tokens.get_credit(), msg
+
+
 
 with gr.Blocks() as demo:
     gr.Markdown("# LEXA - Interfaz web con Gradio")
@@ -145,6 +193,31 @@ with gr.Blocks() as demo:
         validar_btn = gr.Button("Validar")
         faltantes_out = gr.Textbox(label="Requisitos faltantes", lines=4)
         validar_btn.click(validar_requisitos, inputs=[tipo_v_in, datos_in], outputs=faltantes_out)
+
+    with gr.Tab("Tokens"):
+        saldo_out = gr.Number(label="Saldo actual", value=tokens.get_credit(), interactive=False)
+        tokens_out = gr.Number(label="Tokens usados", value=tokens.get_tokens(), interactive=False)
+        credit_file = gr.File(label="Archivo de crédito", file_types=[".json"], interactive=True)
+        import_msg = gr.Textbox(label="Resultado", interactive=False)
+        credit_file.upload(on_import_credit_file, inputs=credit_file, outputs=[saldo_out, import_msg])
+        reset_btn = gr.Button("Reiniciar contador")
+        fecha_desde = gr.Textbox(label="Desde (YYYY-MM-DD)")
+        fecha_hasta = gr.Textbox(label="Hasta (YYYY-MM-DD)")
+        actualizar_btn = gr.Button("Actualizar historial")
+        token_log_df = gr.Dataframe(
+            headers=[
+                "Fecha",
+                "Actividad",
+                "Tokens entrada",
+                "Tokens salida",
+                "Tokens",
+                "Costo",
+            ],
+            value=update_token_log(None, None),
+            interactive=False,
+        )
+        actualizar_btn.click(update_token_log, inputs=[fecha_desde, fecha_hasta], outputs=token_log_df)
+        reset_btn.click(on_reset_tokens, outputs=[tokens_out, token_log_df])
 
     with gr.Tab("Configuración"):
         file_upload = gr.File(
