@@ -8,12 +8,19 @@ se deshabilita pero las demás herramientas continúan funcionando.
 """
 
 import json
+import os
+import tempfile
 import gradio as gr
 
 try:  # pragma: no cover - la importación depende de paquetes externos
     from lib import demandas as dem
+    from lib.demandas import chat_fn, build_or_load_vectorstore
+    from langchain_community.document_loaders import PyPDFLoader
+    from langchain_community.chat_message_histories import ChatMessageHistory
 except Exception:  # noqa: BLE001 - feedback amigable al usuario
     dem = None
+    chat_fn = build_or_load_vectorstore = None
+    PyPDFLoader = ChatMessageHistory = None
 
 from src.classifier.suggest_type import suggest_type
 from src.validators.requirements import validate_requirements
@@ -50,6 +57,34 @@ def validar_requisitos(tipo: str, datos_json: str) -> str:
     return "\n".join(faltantes) if faltantes else "Sin faltantes"
 
 
+def responder_chat(mensaje: str, pdf, history: ChatMessageHistory):
+    """Responde preguntas sobre un PDF subido temporalmente."""
+
+    if (
+        dem is None
+        or chat_fn is None
+        or build_or_load_vectorstore is None
+        or PyPDFLoader is None
+    ):
+        return ("Función no disponible: faltan dependencias de 'lib.demandas'", history)
+    if pdf is None:
+        return ("Debe proporcionar un archivo PDF", history)
+
+    docs = PyPDFLoader(pdf.name).load()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        index_dir = os.path.join(tmpdir, "index")
+        vs = build_or_load_vectorstore(tmpdir, index_dir, extra_docs=docs, force_rebuild=True)
+        ctx = dem.DemandasContext()
+        ctx.memories_por_caso["_GLOBAL_"] = history
+        respuesta = chat_fn(
+            mensaje,
+            caso_seleccionado=None,
+            ctx=ctx,
+            extra_retriever=vs.as_retriever(),
+        )
+    return respuesta, history
+
+
 with gr.Blocks() as demo:
     gr.Markdown("# LEXA - Interfaz web con Gradio")
 
@@ -66,6 +101,18 @@ with gr.Blocks() as demo:
         clasificar_btn = gr.Button("Clasificar")
         tipos_out = gr.Textbox(label="Tipos sugeridos", lines=4)
         clasificar_btn.click(clasificar_caso, inputs=[descripcion_in, topn_in], outputs=tipos_out)
+
+    with gr.Tab("Chat"):
+        pdf_temp = gr.File(label="Documento PDF", file_types=[".pdf"], interactive=True)
+        input_text = gr.Textbox(label="Pregunta")
+        btn_chat = gr.Button("Enviar")
+        respuesta_out = gr.Textbox(label="Respuesta", lines=4)
+        history_state = gr.State(ChatMessageHistory())
+        btn_chat.click(
+            responder_chat,
+            inputs=[input_text, pdf_temp, history_state],
+            outputs=[respuesta_out, history_state],
+        )
 
     with gr.Tab("Validar requisitos"):
         tipo_v_in = gr.Textbox(label="Tipo de demanda")
