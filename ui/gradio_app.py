@@ -157,4 +157,8 @@ with gr.Blocks() as demo:
         file_upload.upload(subir_juris, inputs=file_upload, outputs=upload_msg)
 
 if __name__ == "__main__":
-    demo.launch()
+    disable_share = os.getenv("DISABLE_GRADIO_SHARE", "").lower() in ("1", "true", "yes")
+    if disable_share:
+        demo.launch()
+    else:
+        demo.launch(share=True)

@@ -48,3 +48,8 @@ PYTHONPATH=. python ui/gradio_app.py
 
 Esto iniciará un servidor local de Gradio accesible en
 `http://127.0.0.1:7860` donde podrás clasificar casos y validar requisitos.
+
+Por defecto, la interfaz se lanza con `share=True`, lo que genera un enlace
+público de Gradio. En entornos donde se requiera evitar la exposición externa,
+puedes desactivar esta opción estableciendo la variable de entorno
+`DISABLE_GRADIO_SHARE=1` antes de ejecutar el comando anterior.
