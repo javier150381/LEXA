@@ -151,7 +151,14 @@ class AbogadoVirtualApp:
         self.caso_pdf_trabajo = tk.StringVar(value="")
         self._case_pdf_photo = None
 
-        self.root.bind("<Control-Alt-m>", self.toggle_admin_panel)
+        self.show_admin_panel = os.getenv("LEXA_SHOW_ADMIN", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "admin",
+        )
+        if self.show_admin_panel:
+            self.root.bind("<Control-Alt-m>", self.toggle_admin_panel)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close_app)
 
         self.build_interface()
@@ -1034,6 +1041,17 @@ class AbogadoVirtualApp:
         )
         self.entry_id_email.pack()
 
+        btn_load_email = tk.Button(
+            frame_user,
+            text="Cargar correo",
+            command=self.on_load_id_email,
+            bg=CONFIG_BTN_BG,
+            fg=BUTTON_TEXT_COLOR,
+            activebackground=CONFIG_BTN_BG,
+            activeforeground=BUTTON_TEXT_COLOR,
+        )
+        btn_load_email.pack(pady=5)
+
         btn_gen = tk.Button(
             frame_user,
             text="Generar ID",
@@ -1062,107 +1080,108 @@ class AbogadoVirtualApp:
         )
         btn_copy.pack(pady=5)
 
-        self.frame_admin = tk.LabelFrame(
-            parent, text="Administrador", pady=10, padx=10, bg=FRAME_BG
-        )
+        if self.show_admin_panel:
+            self.frame_admin = tk.LabelFrame(
+                parent, text="Administrador", pady=10, padx=10, bg=FRAME_BG
+            )
 
-        frame_credit = tk.LabelFrame(
-            self.frame_admin, text="Créditos", pady=5, padx=5, bg=FRAME_BG
-        )
-        frame_credit.pack(fill="x")
+            frame_credit = tk.LabelFrame(
+                self.frame_admin, text="Créditos", pady=5, padx=5, bg=FRAME_BG
+            )
+            frame_credit.pack(fill="x")
 
-        row = tk.Frame(frame_credit)
-        row.pack(fill="x")
-        tk.Label(row, text="Monto en dólares:").pack(side="left")
-        self.var_credito_gen = tk.StringVar()
-        tk.Entry(row, textvariable=self.var_credito_gen, width=10).pack(
-            side="left", padx=(5, 0)
-        )
+            row = tk.Frame(frame_credit)
+            row.pack(fill="x")
+            tk.Label(row, text="Monto en dólares:").pack(side="left")
+            self.var_credito_gen = tk.StringVar()
+            tk.Entry(row, textvariable=self.var_credito_gen, width=10).pack(
+                side="left", padx=(5, 0)
+            )
 
-        row = tk.Frame(frame_credit)
-        row.pack(fill="x", pady=(5, 0))
-        tk.Label(row, text="ID del usuario:").pack(side="left")
-        self.var_credito_id = tk.StringVar()
-        tk.Entry(row, textvariable=self.var_credito_id, width=30).pack(
-            side="left", padx=(5, 0)
-        )
+            row = tk.Frame(frame_credit)
+            row.pack(fill="x", pady=(5, 0))
+            tk.Label(row, text="ID del usuario:").pack(side="left")
+            self.var_credito_id = tk.StringVar()
+            tk.Entry(row, textvariable=self.var_credito_id, width=30).pack(
+                side="left", padx=(5, 0)
+            )
 
-        row = tk.Frame(frame_credit)
-        row.pack(fill="x", pady=(5, 0))
-        tk.Label(row, text="Correo del usuario:").pack(side="left")
-        self.var_credito_email = tk.StringVar()
-        tk.Entry(row, textvariable=self.var_credito_email, width=30).pack(
-            side="left", padx=(5, 0)
-        )
+            row = tk.Frame(frame_credit)
+            row.pack(fill="x", pady=(5, 0))
+            tk.Label(row, text="Correo del usuario:").pack(side="left")
+            self.var_credito_email = tk.StringVar()
+            tk.Entry(row, textvariable=self.var_credito_email, width=30).pack(
+                side="left", padx=(5, 0)
+            )
 
-        row = tk.Frame(frame_credit)
-        row.pack(pady=5)
-        btn_gen_clave = tk.Button(
-            row,
-            text="Generar archivo",
-            command=self.on_generate_credit_file,
-            bg=CONFIG_BTN_BG,
-            fg=BUTTON_TEXT_COLOR,
-            activebackground=CONFIG_BTN_BG,
-            activeforeground=BUTTON_TEXT_COLOR,
-        )
-        btn_gen_clave.pack(side="left")
-        btn_reset_credit = tk.Button(
-            row,
-            text="Dejar saldo en cero",
-            command=self.on_reset_credit_balance,
-            bg=CONFIG_BTN_BG,
-            fg=BUTTON_TEXT_COLOR,
-            activebackground=CONFIG_BTN_BG,
-            activeforeground=BUTTON_TEXT_COLOR,
-        )
-        btn_reset_credit.pack(side="left", padx=(5, 0))
+            row = tk.Frame(frame_credit)
+            row.pack(pady=5)
+            btn_gen_clave = tk.Button(
+                row,
+                text="Generar archivo",
+                command=self.on_generate_credit_file,
+                bg=CONFIG_BTN_BG,
+                fg=BUTTON_TEXT_COLOR,
+                activebackground=CONFIG_BTN_BG,
+                activeforeground=BUTTON_TEXT_COLOR,
+            )
+            btn_gen_clave.pack(side="left")
+            btn_reset_credit = tk.Button(
+                row,
+                text="Dejar saldo en cero",
+                command=self.on_reset_credit_balance,
+                bg=CONFIG_BTN_BG,
+                fg=BUTTON_TEXT_COLOR,
+                activebackground=CONFIG_BTN_BG,
+                activeforeground=BUTTON_TEXT_COLOR,
+            )
+            btn_reset_credit.pack(side="left", padx=(5, 0))
 
-        self.lbl_credito_gen = tk.Label(frame_credit, text="")
-        self.lbl_credito_gen.pack()
+            self.lbl_credito_gen = tk.Label(frame_credit, text="")
+            self.lbl_credito_gen.pack()
 
-        frame_enc = tk.LabelFrame(
-            self.frame_admin, text="Encriptar texto", pady=5, padx=5, bg=FRAME_BG
-        )
-        frame_enc.pack(fill="x", pady=(10, 0))
+            frame_enc = tk.LabelFrame(
+                self.frame_admin, text="Encriptar texto", pady=5, padx=5, bg=FRAME_BG
+            )
+            frame_enc.pack(fill="x", pady=(10, 0))
 
-        row = tk.Frame(frame_enc)
-        row.pack(fill="x")
-        tk.Label(row, text="Texto a encriptar:").pack(side="left")
-        self.var_encrypt_input = tk.StringVar()
-        tk.Entry(row, textvariable=self.var_encrypt_input, width=30).pack(
-            side="left", padx=(5, 0), fill="x", expand=True
-        )
+            row = tk.Frame(frame_enc)
+            row.pack(fill="x")
+            tk.Label(row, text="Texto a encriptar:").pack(side="left")
+            self.var_encrypt_input = tk.StringVar()
+            tk.Entry(row, textvariable=self.var_encrypt_input, width=30).pack(
+                side="left", padx=(5, 0), fill="x", expand=True
+            )
 
-        btn_encrypt = tk.Button(
-            frame_enc,
-            text="Encriptar",
-            command=self.on_encrypt_text,
-            bg=CONFIG_BTN_BG,
-            fg=BUTTON_TEXT_COLOR,
-            activebackground=CONFIG_BTN_BG,
-            activeforeground=BUTTON_TEXT_COLOR,
-        )
-        btn_encrypt.pack(pady=5)
+            btn_encrypt = tk.Button(
+                frame_enc,
+                text="Encriptar",
+                command=self.on_encrypt_text,
+                bg=CONFIG_BTN_BG,
+                fg=BUTTON_TEXT_COLOR,
+                activebackground=CONFIG_BTN_BG,
+                activeforeground=BUTTON_TEXT_COLOR,
+            )
+            btn_encrypt.pack(pady=5)
 
-        row = tk.Frame(frame_enc)
-        row.pack(fill="x")
-        tk.Label(row, text="Resultado:").pack(side="left")
-        self.var_encrypt_output = tk.StringVar()
-        tk.Entry(
-            row, textvariable=self.var_encrypt_output, width=50, state="readonly"
-        ).pack(side="left", padx=(5, 0), fill="x", expand=True)
+            row = tk.Frame(frame_enc)
+            row.pack(fill="x")
+            tk.Label(row, text="Resultado:").pack(side="left")
+            self.var_encrypt_output = tk.StringVar()
+            tk.Entry(
+                row, textvariable=self.var_encrypt_output, width=50, state="readonly"
+            ).pack(side="left", padx=(5, 0), fill="x", expand=True)
 
-        btn_copy_enc = tk.Button(
-            frame_enc,
-            text="Copiar",
-            command=self.on_copy_encrypted_text,
-            bg=CONFIG_BTN_BG,
-            fg=BUTTON_TEXT_COLOR,
-            activebackground=CONFIG_BTN_BG,
-            activeforeground=BUTTON_TEXT_COLOR,
-        )
-        btn_copy_enc.pack(pady=5)
+            btn_copy_enc = tk.Button(
+                frame_enc,
+                text="Copiar",
+                command=self.on_copy_encrypted_text,
+                bg=CONFIG_BTN_BG,
+                fg=BUTTON_TEXT_COLOR,
+                activebackground=CONFIG_BTN_BG,
+                activeforeground=BUTTON_TEXT_COLOR,
+            )
+            btn_copy_enc.pack(pady=5)
 
     # --------------------------- Pestaña Créditos -------------------------
     def build_pestaña_creditos(self, parent):
@@ -2839,6 +2858,10 @@ class AbogadoVirtualApp:
             self.root.clipboard_clear()
             self.root.clipboard_append(value)
 
+    def on_load_id_email(self):
+        email = default_context.config_global.get("license_email", "")
+        self.var_id_email.set(email)
+
     def on_generate_credit_file(self):
         try:
             amount = float(self.var_credito_gen.get())
@@ -2907,7 +2930,7 @@ class AbogadoVirtualApp:
             self.root.clipboard_append(value)
 
     def toggle_admin_panel(self, event=None):
-        if not hasattr(self, "frame_admin"):
+        if not self.show_admin_panel or not hasattr(self, "frame_admin"):
             return
         if self.frame_admin.winfo_manager():
             self.frame_admin.pack_forget()
