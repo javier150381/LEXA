@@ -15,20 +15,20 @@ import gradio as gr
 try:  # pragma: no cover - la importación depende de paquetes externos
     from lib import demandas as dem
 
-    from lib.demandas import chat_fn, build_or_load_vectorstore
+    from lib.demandas import (
+        chat_fn,
+        build_or_load_vectorstore,
+        DemandasContext,
+        agregar_jurisprudencia_pdf,
+    )
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.chat_message_histories import ChatMessageHistory
+    ctx = DemandasContext()
 except Exception:  # noqa: BLE001 - feedback amigable al usuario
     dem = None
     chat_fn = build_or_load_vectorstore = None
     PyPDFLoader = ChatMessageHistory = None
-
-    from lib.demandas import DemandasContext, agregar_jurisprudencia_pdf
-    ctx = DemandasContext()
-except Exception:  # noqa: BLE001 - feedback amigable al usuario
-    dem = None
-    DemandasContext = None
-    agregar_jurisprudencia_pdf = None
+    DemandasContext = agregar_jurisprudencia_pdf = None
     ctx = None
 
 
