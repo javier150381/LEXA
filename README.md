@@ -17,6 +17,8 @@ pip install -r requirements.txt
 
 El archivo `requirements.txt` contiene todas las dependencias necesarias para ejecutar la aplicación localmente.
 
+Si ya habías instalado los requerimientos, vuelve a ejecutar `pip install -r requirements.txt` para instalar la nueva dependencia `pypdf`.
+
 ## Ejecución del servidor
 
 Inicia el servidor de desarrollo:
