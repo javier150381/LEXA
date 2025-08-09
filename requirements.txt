@@ -15,4 +15,4 @@ faiss-cpu
 PyYAML
 gradio
 keyring
-
+pypdf
