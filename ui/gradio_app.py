@@ -10,6 +10,7 @@ se deshabilita pero las demás herramientas continúan funcionando.
 import json
 import os
 import tempfile
+import glob
 import gradio as gr
 from lib import tokens
 
@@ -22,6 +23,9 @@ try:  # pragma: no cover - la importación depende de paquetes externos
         DemandasContext,
         agregar_jurisprudencia_pdf,
 
+        CASOS_DIR_ROOT,
+
+
         listar_areas,
         generar_demanda_desde_pdf,
         generar_demanda_cogep_con_datos,
@@ -31,6 +35,7 @@ try:  # pragma: no cover - la importación depende de paquetes externos
         buscar_palabras_clave_exacta_fn,
 
         default_context,
+
 
 
     )
@@ -43,6 +48,9 @@ except Exception:  # noqa: BLE001 - feedback amigable al usuario
     PyPDFLoader = ChatMessageHistory = None
     DemandasContext = agregar_jurisprudencia_pdf = None
 
+    CASOS_DIR_ROOT = ""
+
+
     listar_areas = generar_demanda_desde_pdf = generar_demanda_cogep_con_datos = None
 
 
@@ -50,11 +58,13 @@ except Exception:  # noqa: BLE001 - feedback amigable al usuario
 
     default_context = None
 
+
     ctx = None
 
 
 from src.classifier.suggest_type import suggest_type
 from src.validators.requirements import validate_requirements
+from ui.constants import CHAT_WITH_AI_OPTION
 
 tokens.init_db()
 
@@ -119,36 +129,6 @@ def validar_requisitos(tipo: str, datos_json: str) -> str:
         return f"Error de formato JSON: {exc}"
     faltantes = validate_requirements(tipo, datos)
     return "\n".join(faltantes) if faltantes else "Sin faltantes"
-
-
-
-def responder_chat(mensaje: str, pdf, history: ChatMessageHistory):
-    """Responde preguntas sobre un PDF subido temporalmente."""
-
-    if (
-        dem is None
-        or chat_fn is None
-        or build_or_load_vectorstore is None
-        or PyPDFLoader is None
-    ):
-        return ("Función no disponible: faltan dependencias de 'lib.demandas'", history)
-    if pdf is None:
-        return ("Debe proporcionar un archivo PDF", history)
-
-    docs = PyPDFLoader(pdf.name).load()
-    with tempfile.TemporaryDirectory() as tmpdir:
-        index_dir = os.path.join(tmpdir, "index")
-        vs = build_or_load_vectorstore(tmpdir, index_dir, extra_docs=docs, force_rebuild=True)
-        ctx = dem.DemandasContext()
-        ctx.memories_por_caso["_GLOBAL_"] = history
-        respuesta = chat_fn(
-            mensaje,
-            caso_seleccionado=None,
-            ctx=ctx,
-            extra_retriever=vs.as_retriever(),
-        )
-    return respuesta, history
-
 def subir_juris(files):
     """Carga archivos PDF de jurisprudencia."""
     if agregar_jurisprudencia_pdf is None:
@@ -161,6 +141,103 @@ def subir_juris(files):
         except Exception as exc:  # pragma: no cover - feedback amigable
             msgs.append(f"Error al agregar {file.name}: {exc}")
     return "\n".join(msgs)
+
+
+def get_lista_carpeta_casos():
+    """Lista los nombres de carpetas de casos existentes."""
+    if not CASOS_DIR_ROOT or not os.path.isdir(CASOS_DIR_ROOT):
+        return []
+    return sorted(
+        [
+            os.path.basename(p)
+            for p in glob.glob(os.path.join(CASOS_DIR_ROOT, "*"))
+            if os.path.isdir(p)
+        ]
+    )
+
+
+def _history_to_pairs(history: ChatMessageHistory):
+    """Convierte ``history`` en pares (usuario, bot) para ``gr.Chatbot``."""
+    pairs = []
+    user_msg = None
+    for msg in history.messages:
+        if msg.type == "human":
+            user_msg = msg.content
+        else:
+            pairs.append((user_msg or "", msg.content))
+            user_msg = None
+    return pairs
+
+
+def responder_chat_general(
+    mensaje: str,
+    caso: str,
+    pdfs,
+    usar_jurisprudencia: bool,
+    history: ChatMessageHistory,
+):
+    """Maneja la conversación del chat general."""
+
+    if (
+        dem is None
+        or chat_fn is None
+        or build_or_load_vectorstore is None
+        or PyPDFLoader is None
+    ):
+        return [], history
+
+    docs = []
+    for file in pdfs or []:
+        try:
+            docs.extend(PyPDFLoader(file.name).load())
+        except Exception:  # pragma: no cover - feedback al usuario
+            continue
+    retriever = None
+    if docs:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            index_dir = os.path.join(tmpdir, "index")
+            vs = build_or_load_vectorstore(
+                tmpdir, index_dir, extra_docs=docs, force_rebuild=True
+            )
+            retriever = vs.as_retriever()
+
+    caso_key = caso if caso and caso != CHAT_WITH_AI_OPTION else None
+    ctx.memories_por_caso[caso_key or "_GLOBAL_"] = history or ChatMessageHistory()
+    respuesta = chat_fn(
+        mensaje,
+        caso_key,
+        ctx=ctx,
+        extra_retriever=retriever,
+        usar_jurisprudencia=usar_jurisprudencia,
+    )
+    history = ctx.memories_por_caso[caso_key or "_GLOBAL_"]
+    pairs = _history_to_pairs(history)
+    return pairs, history
+
+
+def on_case_change(caso: str):
+    """Actualiza el historial mostrado al cambiar de caso."""
+    caso_key = caso if caso and caso != CHAT_WITH_AI_OPTION else None
+    history = ctx.memories_por_caso.get(caso_key or "_GLOBAL_", ChatMessageHistory())
+    ctx.memories_por_caso[caso_key or "_GLOBAL_"] = history
+    return _history_to_pairs(history), history
+
+
+def on_clear_chat(caso: str):
+    """Limpia el historial del chat y PDFs cargados."""
+    caso_key = caso if caso and caso != CHAT_WITH_AI_OPTION else None
+    history = ChatMessageHistory()
+    ctx.memories_por_caso[caso_key or "_GLOBAL_"] = history
+    return [], history, None, ""
+
+
+def on_copy_chat(history: ChatMessageHistory) -> str:
+    """Devuelve el contenido del chat para copiar."""
+    lines = []
+    for msg in history.messages:
+        role = "Usuario" if msg.type == "human" else "LEXA"
+        lines.append(f"{role}: {msg.content}")
+    return "\n".join(lines)
 
 
 
@@ -251,16 +328,35 @@ with gr.Blocks() as demo:
         clasificar_btn.click(clasificar_caso, inputs=[descripcion_in, topn_in], outputs=tipos_out)
 
     with gr.Tab("Chat"):
-        pdf_temp = gr.File(label="Documento PDF", file_types=[".pdf"], interactive=True)
-        input_text = gr.Textbox(label="Pregunta")
-        btn_chat = gr.Button("Enviar")
-        respuesta_out = gr.Textbox(label="Respuesta", lines=4)
-        history_state = gr.State(ChatMessageHistory())
-        btn_chat.click(
-            responder_chat,
-            inputs=[input_text, pdf_temp, history_state],
-            outputs=[respuesta_out, history_state],
+        casos = [CHAT_WITH_AI_OPTION] + get_lista_carpeta_casos()
+        caso_dd = gr.Dropdown(label="Caso", choices=casos, value=CHAT_WITH_AI_OPTION)
+        chk_juris = gr.Checkbox(label="Jurisprudencia", value=True)
+        pdfs_in = gr.File(
+            label="Documentos PDF",
+            file_types=[".pdf"],
+            interactive=True,
+            file_count="multiple",
         )
+        chatbot = gr.Chatbot(label="Conversación")
+        input_text = gr.Textbox(label="Mensaje")
+        with gr.Row():
+            btn_chat = gr.Button("Enviar")
+            btn_clear = gr.Button("Limpiar")
+            btn_copy = gr.Button("Copiar")
+        copy_box = gr.Textbox(label="Texto copiado", lines=4)
+        history_state = gr.State(ChatMessageHistory())
+        caso_dd.change(on_case_change, inputs=caso_dd, outputs=[chatbot, history_state])
+        btn_chat.click(
+            responder_chat_general,
+            inputs=[input_text, caso_dd, pdfs_in, chk_juris, history_state],
+            outputs=[chatbot, history_state],
+        )
+        btn_clear.click(
+            on_clear_chat,
+            inputs=caso_dd,
+            outputs=[chatbot, history_state, pdfs_in, copy_box],
+        )
+        btn_copy.click(on_copy_chat, inputs=history_state, outputs=copy_box)
 
     with gr.Tab("Palabras clave"):
         palabras_in = gr.Textbox(label="Ingresa palabras clave o temas")
