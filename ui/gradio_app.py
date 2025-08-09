@@ -20,6 +20,7 @@ try:  # pragma: no cover - la importación depende de paquetes externos
         build_or_load_vectorstore,
         DemandasContext,
         agregar_jurisprudencia_pdf,
+        default_context,
     )
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.chat_message_histories import ChatMessageHistory
@@ -29,6 +30,7 @@ except Exception:  # noqa: BLE001 - feedback amigable al usuario
     chat_fn = build_or_load_vectorstore = None
     PyPDFLoader = ChatMessageHistory = None
     DemandasContext = agregar_jurisprudencia_pdf = None
+    default_context = None
     ctx = None
 
 
@@ -155,6 +157,22 @@ with gr.Blocks() as demo:
         )
         upload_msg = gr.Textbox(label="Resultado", lines=4)
         file_upload.upload(subir_juris, inputs=file_upload, outputs=upload_msg)
+
+    with gr.Tab("Créditos"):
+        logo_path = None
+        if default_context is not None:
+            logo_path = default_context.config_global.get("logo_path")
+        if not logo_path or not os.path.isfile(logo_path):
+            logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logo.png")
+        gr.Image(value=logo_path, show_label=False)
+        gr.Markdown(
+            "LEXA - tu asesor legal potenciado por IA\n"
+            "Desarrollado por Ing. Marco Castelo.\n"
+            "Jurídico: Ab. Marcos Dávalos.\n"
+            "Contactos: +593 99 569 9755 / +593959733823\n"
+            "Riobamba, Ecuador\n"
+            "Todos los derechos reservados."
+        )
 
 if __name__ == "__main__":
     disable_share = os.getenv("DISABLE_GRADIO_SHARE", "").lower() in ("1", "true", "yes")
