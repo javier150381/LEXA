@@ -1274,9 +1274,7 @@ def chat_fn(
             ctx.vectorstores_por_caso[caso_seleccionado].as_retriever(search_kwargs={"k": 15})
         )
 
-    if usar_jurisprudencia:
-        if not ctx.juris_vectorstore:
-            return "⚠️ Debes cargar primero la jurisprudencia (pestaña “⚙️ Configuración”)."
+    if usar_jurisprudencia and ctx.juris_vectorstore:
         retrievers.append(
             ctx.juris_vectorstore.as_retriever(search_kwargs={"k": 15})
         )
@@ -1569,7 +1567,7 @@ def buscar_ejemplo_fn(mensaje, ctx=default_context):
 def buscar_palabras_clave_fn(mensaje, ctx=default_context):
 
     if not ctx.juris_vectorstore:
-        return "⚠️ Debes cargar primero la jurisprudencia (pestaña “⚙️ Configuración”)."
+        return "No se ha cargado jurisprudencia."
 
 
     if re.search(r"art(?:[íi]culo|\.)?\s*\d+", mensaje, re.IGNORECASE):
@@ -1663,7 +1661,7 @@ def buscar_palabras_clave_exacta_fn(mensaje, ctx=default_context):
     """
 
     if not ctx.juris_vectorstore:
-        return "⚠️ Debes cargar primero la jurisprudencia (pestaña “⚙️ Configuración”)."
+        return "No se ha cargado jurisprudencia."
     if not ctx.juris_index:
         ctx.juris_index = build_exact_index(ctx.juris_vectorstore)
 
