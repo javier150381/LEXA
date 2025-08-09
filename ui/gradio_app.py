@@ -14,6 +14,7 @@ import gradio as gr
 
 try:  # pragma: no cover - la importación depende de paquetes externos
     from lib import demandas as dem
+
     from lib.demandas import chat_fn, build_or_load_vectorstore
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_community.chat_message_histories import ChatMessageHistory
@@ -21,6 +22,15 @@ except Exception:  # noqa: BLE001 - feedback amigable al usuario
     dem = None
     chat_fn = build_or_load_vectorstore = None
     PyPDFLoader = ChatMessageHistory = None
+
+    from lib.demandas import DemandasContext, agregar_jurisprudencia_pdf
+    ctx = DemandasContext()
+except Exception:  # noqa: BLE001 - feedback amigable al usuario
+    dem = None
+    DemandasContext = None
+    agregar_jurisprudencia_pdf = None
+    ctx = None
+
 
 from src.classifier.suggest_type import suggest_type
 from src.validators.requirements import validate_requirements
@@ -57,6 +67,7 @@ def validar_requisitos(tipo: str, datos_json: str) -> str:
     return "\n".join(faltantes) if faltantes else "Sin faltantes"
 
 
+
 def responder_chat(mensaje: str, pdf, history: ChatMessageHistory):
     """Responde preguntas sobre un PDF subido temporalmente."""
 
@@ -83,6 +94,20 @@ def responder_chat(mensaje: str, pdf, history: ChatMessageHistory):
             extra_retriever=vs.as_retriever(),
         )
     return respuesta, history
+
+def subir_juris(files):
+    """Carga archivos PDF de jurisprudencia."""
+    if agregar_jurisprudencia_pdf is None:
+        return "Función no disponible: faltan dependencias de 'lib.demandas'"
+    msgs = []
+    for file in files or []:
+        try:
+            agregar_jurisprudencia_pdf(file.name, ctx=ctx)
+            msgs.append(f"Agregado: {file.name}")
+        except Exception as exc:  # pragma: no cover - feedback amigable
+            msgs.append(f"Error al agregar {file.name}: {exc}")
+    return "\n".join(msgs)
+
 
 
 with gr.Blocks() as demo:
@@ -120,6 +145,16 @@ with gr.Blocks() as demo:
         validar_btn = gr.Button("Validar")
         faltantes_out = gr.Textbox(label="Requisitos faltantes", lines=4)
         validar_btn.click(validar_requisitos, inputs=[tipo_v_in, datos_in], outputs=faltantes_out)
+
+    with gr.Tab("Configuración"):
+        file_upload = gr.File(
+            label="Subir jurisprudencia (PDF)",
+            file_types=[".pdf"],
+            interactive=True,
+            multiple=True,
+        )
+        upload_msg = gr.Textbox(label="Resultado", lines=4)
+        file_upload.upload(subir_juris, inputs=file_upload, outputs=upload_msg)
 
 if __name__ == "__main__":
     demo.launch()
