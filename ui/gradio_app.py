@@ -151,7 +151,7 @@ with gr.Blocks() as demo:
             label="Subir jurisprudencia (PDF)",
             file_types=[".pdf"],
             interactive=True,
-            multiple=True,
+            file_count="multiple",
         )
         upload_msg = gr.Textbox(label="Resultado", lines=4)
         file_upload.upload(subir_juris, inputs=file_upload, outputs=upload_msg)
