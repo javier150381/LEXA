@@ -35,5 +35,9 @@ from .activation import (
     load_activation,
 )
 
+
+
+
 # utilidades de voz
 from .voice import transcribir_audio, conversar
+
