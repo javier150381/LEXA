@@ -35,4 +35,9 @@ from .activation import (
     load_activation,
 )
 
-from .rag_chain import construir_rag
+
+
+
+# utilidades de voz
+from .voice import transcribir_audio, conversar
+
