@@ -16,3 +16,4 @@ PyYAML
 gradio
 keyring
 pypdf
+openai-whisper
