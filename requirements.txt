@@ -19,5 +19,9 @@ pypdf
 
 openai-whisper
 
+
+openai-whisper
+
 language_tool_python
+
 
