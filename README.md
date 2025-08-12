@@ -53,3 +53,11 @@ Por defecto, la interfaz se lanza con `share=True`, lo que genera un enlace
 público de Gradio. En entornos donde se requiera evitar la exposición externa,
 puedes desactivar esta opción estableciendo la variable de entorno
 `DISABLE_GRADIO_SHARE=1` antes de ejecutar el comando anterior.
+
+## Errores típicos nivel B1
+
+Algunos errores frecuentes en aprendientes de nivel B1 de inglés son:
+
+- `goed` → `went`
+- `writed` → `wrote`
+- `comed` → `came` / `ate`
