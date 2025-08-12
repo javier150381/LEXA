@@ -34,3 +34,10 @@ from .activation import (
     activate_from_file,
     load_activation,
 )
+
+
+
+
+# utilidades de voz
+from .voice import transcribir_audio, conversar
+
