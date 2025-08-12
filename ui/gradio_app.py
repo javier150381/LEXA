@@ -64,6 +64,7 @@ except Exception:  # noqa: BLE001 - feedback amigable al usuario
 
 from src.classifier.suggest_type import suggest_type
 from src.validators.requirements import validate_requirements
+from src.listening import escuchar
 from ui.constants import CHAT_WITH_AI_OPTION
 
 tokens.init_db()
@@ -347,6 +348,25 @@ with gr.Blocks() as demo:
             responder_chat_general,
             inputs=[input_text, caso_dd, pdfs_in, chk_juris, history_state],
             outputs=[chatbot, history_state],
+        )
+
+    with gr.Tab("Listening"):
+        gr.Markdown(
+            "Graba tu pregunta en audio y LEXA la transcribirá y responderá en español."
+        )
+        audio_in = gr.Audio(source="microphone", type="filepath", label="Audio")
+        trans_out = gr.Textbox(label="Transcripción")
+        resp_out = gr.Textbox(label="Respuesta")
+        btn_listen = gr.Button("Escuchar")
+        btn_listen.click(escuchar, inputs=audio_in, outputs=[trans_out, resp_out])
+        ejemplo_box = gr.Textbox(label="Pregunta ejemplo", interactive=False)
+        gr.Examples(
+            examples=[
+                ["Describe un viaje que hayas hecho recientemente."],
+                ["¿Qué tipo de trabajo te gustaría tener en el futuro?"],
+            ],
+            inputs=ejemplo_box,
+            label="Ejemplos MCER B1",
         )
 
     with gr.Tab("Palabras clave"):
