@@ -54,6 +54,18 @@ público de Gradio. En entornos donde se requiera evitar la exposición externa,
 puedes desactivar esta opción estableciendo la variable de entorno
 `DISABLE_GRADIO_SHARE=1` antes de ejecutar el comando anterior.
 
+
+
+El módulo `lib/indexing.py` introduce la función `crear_indice`, que crea un
+almacenamiento vectorial a partir de una lista de documentos. De forma
+predeterminada se utiliza `FAISS`, pero puede activarse el backend de Pinecone
+estableciendo el parámetro `usar_pinecone=True`.
+
+Cuando se utiliza Pinecone es necesario proporcionar las credenciales de
+autenticación mediante los parámetros `api_key`, `environment` e `index_name`,
+los cuales corresponden a `PINECONE_API_KEY`, `PINECONE_ENVIRONMENT` y
+`PINECONE_INDEX_NAME` respectivamente.
+
 ## Errores típicos nivel B1
 
 Algunos errores frecuentes en aprendientes de nivel B1 de inglés son:
@@ -61,3 +73,4 @@ Algunos errores frecuentes en aprendientes de nivel B1 de inglés son:
 - `goed` → `went`
 - `writed` → `wrote`
 - `comed` → `came` / `ate`
+
