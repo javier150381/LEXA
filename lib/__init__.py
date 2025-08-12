@@ -34,3 +34,5 @@ from .activation import (
     activate_from_file,
     load_activation,
 )
+
+from .rag_chain import construir_rag
