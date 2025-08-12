@@ -695,17 +695,6 @@ class AbogadoVirtualApp:
             frame_input, text="▶️ Enviar", command=self.on_send_chat_general
         )
         btn_send.pack(side="left")
-        btn_clear = tk.Button(
-            frame_input, text="🧹 Limpiar", command=self.on_clear_chat_general
-        )
-        btn_clear.pack(side="left", padx=(5, 0))
-
-        btn_copy = tk.Button(
-            frame_input,
-            text="Copiar texto seleccionado",
-            command=self.on_copy_chat_selected,
-        )
-        btn_copy.pack(side="left", padx=(5, 0))
 
         self.lbl_chat_status = tk.Label(
             frame_chat_left,

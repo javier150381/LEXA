@@ -341,9 +341,6 @@ with gr.Blocks() as demo:
         input_text = gr.Textbox(label="Mensaje")
         with gr.Row():
             btn_chat = gr.Button("Enviar")
-            btn_clear = gr.Button("Limpiar")
-            btn_copy = gr.Button("Copiar")
-        copy_box = gr.Textbox(label="Texto copiado", lines=4)
         history_state = gr.State(ChatMessageHistory())
         caso_dd.change(on_case_change, inputs=caso_dd, outputs=[chatbot, history_state])
         btn_chat.click(
@@ -351,12 +348,6 @@ with gr.Blocks() as demo:
             inputs=[input_text, caso_dd, pdfs_in, chk_juris, history_state],
             outputs=[chatbot, history_state],
         )
-        btn_clear.click(
-            on_clear_chat,
-            inputs=caso_dd,
-            outputs=[chatbot, history_state, pdfs_in, copy_box],
-        )
-        btn_copy.click(on_copy_chat, inputs=history_state, outputs=copy_box)
 
     with gr.Tab("Palabras clave"):
         palabras_in = gr.Textbox(label="Ingresa palabras clave o temas")
